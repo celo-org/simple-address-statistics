@@ -35,6 +35,5 @@ Important - all the values here are represented in the local currency defined in
 * `totalFees` - Total amount of fees for all send/exchange transactions. (Received transactions are not included, as the sender, not recipient address, pays the fee)
 * `averageFees` - Average of all fees
 * `averageTransferTime` - Average block time for all transactions
-
-## ToDo
-* `averageTransferTime` - Set to zero for now, needs to be completed
+* `txTimeTotal` - Total block time (mined block timestamp minus previous mined block timestamp) for all transactions
+* `averageTxTime` - Average of all block times (should converge to 5000 ms on the Celo network)
