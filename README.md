@@ -7,9 +7,12 @@ Basic transaction statistics for a token (like cUSD), for supplied Celo addresse
 ## Config
 Update the `.env` file as per the following
 ```
-GRAPHQL_ENDPOINT=https://blockchain-api-dot-celo-mobile-mainnet.appspot.com/
+BLOCKCHAIN_API_ENDPOINT=https://blockchain-api-dot-celo-mobile-mainnet.appspot.com/
+BLOCKSCOUT_ENDPOINT=https://alfajores-blockscout.celo-testnet.org/graphql/
 TOKEN=cUSD
 LOCAL_CURRENCY_CODE=EUR
+CLIENT_APPLICATION_NAME=celo-simple-address-monitor
+CLIENT_APPLICATION_VERSION=0.0.1
 ```
 Important: final values are represented on screen and written to file are in the local currency defined here.
 ## Usage
