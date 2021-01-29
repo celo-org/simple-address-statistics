@@ -1,4 +1,4 @@
-# celo-simple-address-monitor
+# simple-address-statistics
 Basic transaction statistics for a token (like cUSD), for supplied Celo addresses for a date range.
 
 ## Install / build
