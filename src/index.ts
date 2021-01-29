@@ -78,6 +78,7 @@ async function start(
     for(let i = 0; i < addresses.length;i++){
       
       const element = addresses[i];
+      console.log("");
       console.log(`******************************************************`);
       console.log(`Started data retrieval for ${JSON.stringify(element)}`);
 
@@ -91,7 +92,6 @@ async function start(
       const response = await client.query(options);  
       const data = response.data;
       console.log(`Completed data retreival for ${addresses[i].address}`);
-      console.log();
       
       const totals = {
         totalReceived : zero,
