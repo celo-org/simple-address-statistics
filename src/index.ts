@@ -1,12 +1,13 @@
 import fs from "fs";
 import neatCsv from "neat-csv";
+import * as fastcsv from "fast-csv";
 import "cross-fetch/polyfill";
 import { QueryOptions, ApolloClient, InMemoryCache } from "@apollo/client/core";
 import { isValidAddress, toCheckSumAddress } from "./lib/celo";
 import { ADDRESS_QUERY } from "./lib/gql";
 import { toEpochTimestamp } from "./lib/util";
 import { BigNumber } from "bignumber.js";
-BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: BigNumber.ROUND_HALF_UP })
+BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -159,12 +160,16 @@ async function start(
   console.log("");
   console.table(results);
 
-
-
-
-
-
-
+  // Output to file
+  if(outputFile != undefined){    
+    console.log("")
+    const ws = fs.createWriteStream(outputFile);
+    fastcsv.write(results, { headers: true }).pipe(ws);
+    console.log(`Output written to ${outputFile}. Ending.`);
+  }
+  else{
+    console.log("No output file specified. Ending.");
+  }
 }
 
 const args = process.argv;
