@@ -1,29 +1,30 @@
-import fs from "fs";
-import neatCsv from "neat-csv";
-import * as fastcsv from "fast-csv";
-import "cross-fetch/polyfill";
-import { QueryOptions, ApolloClient, InMemoryCache } from "@apollo/client/core";
-import { isValidAddress, toCheckSumAddress } from "./lib/celo";
-import { ADDRESS_QUERY } from "./lib/gql";
-import { toEpochTimestamp } from "./lib/util";
+import { toEpochTimestamp, readCsv, writeCsv, bnAverage } from "./lib/util";
 import { BigNumber } from "bignumber.js";
-BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
+import { getTimestampForBlock, getTransactionsForAddress } from "./lib/celo";
+import { AddressTotal, AddressTotalDisplay } from "./types";
+
 import dotenv from "dotenv";
 dotenv.config();
 
-async function readCsv(filename: string): Promise<any> {
-  const stream = fs.createReadStream(filename);
-  const addresses = await neatCsv(stream);
+BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
+const ZERO = new BigNumber(0);
+const ONE = new BigNumber(1);
 
-  // Skip header row
-  for (let i = 0; i < addresses.length; i++) {
-    if (!isValidAddress(addresses[i].address))
-      throw `${addresses[i].address} is not a valid Celo address`;
-    else addresses[i].address = toCheckSumAddress(addresses[i].address);
-  }
-
-  console.log(`Addresses ${JSON.stringify(addresses)}`);
-  return addresses;
+function emptyTotals(): AddressTotal {
+  return {
+    totalReceived: ZERO,
+    receivedCount: ZERO,
+    averageReceived: ZERO,
+    totalSent: ZERO,
+    sentCount: ZERO,
+    averageSent: ZERO,
+    totalFees: ZERO,
+    feesCount: ZERO,
+    averageFees: ZERO,
+    averageTransferTime: ZERO,
+    txTimeTotal: ZERO,
+    averageTxTime: ZERO,
+  };
 }
 
 async function start(
@@ -32,12 +33,11 @@ async function start(
   toDate: string,
   outputFile?: string
 ): Promise<void> {
-  const zero = new BigNumber(0);
-
+  // Show file parms
   console.log(`Input file is ${inputFile}`);
   console.log(`Output file is ${outputFile}`);
 
-  // Parse dates
+  // Show date parms
   let epochFromDate, epochToDate;
   try {
     epochFromDate = toEpochTimestamp(fromDate);
@@ -49,7 +49,7 @@ async function start(
     throw err;
   }
 
-  // Read file
+  // Read CSV file for addresses
   let addresses;
   try {
     addresses = await readCsv(inputFile);
@@ -58,114 +58,111 @@ async function start(
     throw err;
   }
 
-  // Get data
+  // Retrieve and process data
   const results = [];
   try {
-    const cache = new InMemoryCache();
-    const client = new ApolloClient({
-      uri: process.env.GRAPHQL_ENDPOINT,
-      cache: cache,
-      name: "celo-simple-address-monitor",
-      version: "0.0.1",
-      queryDeduplication: false,
-    });
-
     for (let i = 0; i < addresses.length; i++) {
       const element = addresses[i];
-      console.log("");
+      console.log();
       console.log(`******************************************************`);
-      console.log(`Started data retrieval for ${JSON.stringify(element)}`);
+      console.log(`Started data retrieval for ${element.address}`);
 
-      const variables = {
-        address: element.address,
-        token: process.env.TOKEN,
-        localCurrencyCode: process.env.LOCAL_CURRENCY_CODE,
-      };
-      const options: QueryOptions = {
-        errorPolicy: "all",
-        fetchPolicy: "no-cache",
-        query: ADDRESS_QUERY,
-        variables: variables,
-      };
-      const response = await client.query(options);
-      const data = response.data;
-      console.log(`Completed data retreival for ${addresses[i].address}`);
-
-      const totals = {
-        totalReceived: zero,
-        receivedCount: zero,
-        averageReceived: zero,
-        totalSent: zero,
-        sentCount: zero,
-        averageSent: zero,
-        totalFees: zero,
-        feesCount: zero,
-        averageFees: zero,
-        averageTransferTime: zero,
-      };
+      const data = await getTransactionsForAddress(element.address);
+      const totals: AddressTotal = emptyTotals();
 
       for (let j = 0; j < data?.tokenTransactions?.edges.length; j++) {
-        const element = data.tokenTransactions.edges[j].node;
+        // Process one transaction at a time
+        const transaction = data.tokenTransactions.edges[j].node;
 
         // Skip if this node doesn't match the time range
         if (
           !(
-            element.timestamp >= epochFromDate &&
-            element.timestamp < epochToDate
+            transaction.timestamp >= epochFromDate &&
+            transaction.timestamp < epochToDate
           )
         ) {
           console.log(
-            `Skipping txId ${element.hash} timestamp ${element.timestamp} is out of range ${epochFromDate} to ${epochToDate}`
+            `Skipping txId ${transaction.hash} timestamp ${transaction.timestamp} is out of range ${epochFromDate} to ${epochToDate}`
           );
           continue;
-        } else {
-          console.log(`Processing txId ${element.hash} `);
         }
 
-        if (element.type === "SENT" || element.type === "EXCHANGE") {
-          totals.totalSent = totals.totalSent.plus(
-            new BigNumber(element.amount.localAmount.value)
-          );
-          totals.sentCount = totals.sentCount.plus(new BigNumber(1));
+        // Transaction value
+        const transactionValue = new BigNumber(transaction.amount.value);
 
-          for (let k = 0; k < element.fees.length; k++) {
-            totals.totalFees = totals.totalFees.plus(
-              new BigNumber(element.fees[k].amount.localAmount.value)
-            );
-            totals.feesCount = totals.feesCount.plus(new BigNumber(1));
-          }
-        } else if (element.type === "RECEIVED") {
-          totals.totalReceived = totals.totalReceived.plus(
-            new BigNumber(element.amount.localAmount.value)
+        // Block time estimate (difference between block timestamp and previous block timestamp)
+        const blockTimestamp: BigNumber = new BigNumber(
+          await getTimestampForBlock(parseInt(transaction.block))
+        );
+        const previousBlockTimestamp: BigNumber = new BigNumber(
+          await getTimestampForBlock(parseInt(transaction.block) - 1)
+        );
+        const transactionTime: BigNumber = blockTimestamp.minus(
+          previousBlockTimestamp
+        );
+        totals.txTimeTotal = totals.txTimeTotal.plus(transactionTime);
+        console.log(
+          `Processing txId ${
+            transaction.hash
+          }, value ${transactionValue.toString()} ${
+            process.env.TOKEN
+          }, estimate transaction time was ${transactionTime.toString()} `
+        );
+
+        // Collate totals for outgoing transactions (value < 0)
+        if (transactionValue.isLessThan(ZERO)) {
+          totals.totalSent = totals.totalSent.plus(
+            new BigNumber(transaction.amount.localAmount.value)
           );
-          totals.receivedCount = totals.receivedCount.plus(new BigNumber(1));
+          totals.sentCount = totals.sentCount.plus(ONE);
+
+          // Fees is an array (transaction can have more than one fee type)
+          for (let k = 0; k < transaction.fees.length; k++) {
+            totals.totalFees = totals.totalFees.plus(
+              new BigNumber(transaction.fees[k].amount.localAmount.value)
+            );
+            totals.feesCount = totals.feesCount.plus(ONE);
+          }
+
+          // Collate totals for incoming transactions (value >= 0)
+        } else if (transactionValue.isGreaterThanOrEqualTo(ZERO)) {
+          totals.totalReceived = totals.totalReceived.plus(
+            new BigNumber(transaction.amount.localAmount.value)
+          );
+          totals.receivedCount = totals.receivedCount.plus(ONE);
         }
       }
 
-      // Calculate totals
-      totals.averageSent = !totals.sentCount.isEqualTo(zero)
-        ? totals.totalSent.dividedBy(totals.sentCount)
-        : zero;
-      totals.averageReceived = !totals.receivedCount.isEqualTo(zero)
-        ? totals.totalReceived.dividedBy(totals.receivedCount)
-        : zero;
-      totals.averageFees = !totals.feesCount.isEqualTo(zero)
-        ? totals.totalFees.dividedBy(totals.feesCount)
-        : zero;
+      // Calculate averages
+      totals.averageSent = bnAverage(totals.totalSent, totals.sentCount);
+      totals.averageReceived = bnAverage(
+        totals.totalReceived,
+        totals.receivedCount
+      );
+      totals.averageFees = bnAverage(totals.totalFees, totals.feesCount);
+      totals.averageTxTime = bnAverage(
+        totals.txTimeTotal,
+        totals.sentCount.plus(totals.receivedCount)
+      );
 
-      const stringTotals = {
+      const stringTotals: AddressTotalDisplay = {
         totalReceived: totals.totalReceived.toString(),
+        receivedCount: totals.receivedCount.toString(),
         averageReceived: totals.averageReceived.toString(),
         totalSent: totals.totalSent.toString(),
+        sentCount: totals.sentCount.toString(),
         averageSent: totals.averageSent.toString(),
         totalFees: totals.totalFees.toString(),
+        feesCount: totals.feesCount.toString(),
         averageFees: totals.averageFees.toString(),
         averageTransferTime: totals.averageTransferTime.toString(),
+        txTimeTotal: totals.txTimeTotal.toString(),
+        averageTxTime: totals.averageTxTime.toString(),
       };
       results.push({ address: addresses[i].address, ...stringTotals });
     }
   } catch (err) {
-    console.error("Error retrieving data:" + err);
+    console.error("Error processing data:" + err);
     throw err;
   }
 
@@ -174,14 +171,7 @@ async function start(
   console.table(results);
 
   // Output to file
-  if (outputFile != undefined) {
-    console.log("");
-    const ws = fs.createWriteStream(outputFile);
-    fastcsv.write(results, { headers: true }).pipe(ws);
-    console.log(`Output written to ${outputFile}. Ending.`);
-  } else {
-    console.log("No output file specified. Ending.");
-  }
+  writeCsv(outputFile, results);
 }
 
 const args = process.argv;

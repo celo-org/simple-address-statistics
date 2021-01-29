@@ -1,7 +1,14 @@
 import { gql } from "@apollo/client/core";
 
+export const BLOCK_TIMESTAMP_QUERY = gql`
+  query Block($number: Int!) {
+    block(number: $number) {
+      timestamp
+    }
+  }
+`;
+
 export const ADDRESS_QUERY = gql`
-  # Write your query or mutation here
   query UserTransactions(
     $address: Address!
     $token: Token!
@@ -27,6 +34,7 @@ export const ADDRESS_QUERY = gql`
     __typename
     type
     hash
+    block
     fees {
       type
       amount {
@@ -84,6 +92,7 @@ export const ADDRESS_QUERY = gql`
       }
     }
     hash
+    block
     amount {
       value
       currencyCode
