@@ -24,6 +24,8 @@ Important: final values are represented on screen and written to file are in the
 * `dateTo` - End date range in format YYYY-MM-DD
 * `ouputFile` - Optional filename for CSV file to ouput results to (if not supplied, only prints to screen)
 
+Note - date ranges are converted to epoch timestamps and the data is filtered where `block.timestamp` >= `dateFrom` and `block.timestamp` < `dateTo`
+
 ## Example
 `yarn start ./sample.csv 2020-04-22 2021-12-31 ./output.csv`
 
