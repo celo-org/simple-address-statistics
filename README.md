@@ -25,10 +25,6 @@ Important: final values are represented on screen and written to file are in the
 * `ouputFile` - Optional filename for CSV file to ouput results to (if not supplied, only prints to screen)
 
 Note - date ranges are converted to epoch timestamps and the data is filtered where `block.timestamp` >= `dateFrom` and `block.timestamp` < `dateTo`
-
-## Example
-`yarn start ./sample.csv 2020-04-22 2021-12-31 ./output.csv`
-
 ## Output Format
 Important - all the values here are represented in the local currency defined in the `.env`, and converted using the currency rate at the time of the transaction timestamp.
 
@@ -42,3 +38,7 @@ Important - all the values here are represented in the local currency defined in
 * `averageTransferTime` - Average block time for all transactions
 * `txTimeTotal` - Total block time (mined block timestamp minus previous mined block timestamp) for all transactions
 * `averageTxTime` - Average of all block times (should converge to 5000 ms on the Celo network)
+## Example
+`yarn start ./sample.csv 2020-04-22 2021-12-31 ./output.csv`
+
+![example.png](./example.png)
