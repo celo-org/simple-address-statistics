@@ -11,7 +11,10 @@ describe("Should test the celo library", () => {
   it("Should get the timestamp of block 1 mainnet", async () => {
     const timestamp = await celo.getTimestampForBlock(1);
     const expected = 1594921556000;
-    assert(timestamp === expected, `Block 1 timestamp should be ${expected} not ${timestamp}`);
+    assert(
+      timestamp === expected,
+      `Block 1 timestamp should be ${expected} not ${timestamp}`
+    );
   });
 
   it("Should verify valid address", async () => {
