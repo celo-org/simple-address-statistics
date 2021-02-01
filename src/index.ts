@@ -1,7 +1,7 @@
-import { toEpochTimestamp, readCsv, writeCsv, bnAverage } from "./lib/util";
+import { toEpochTimestamp, readCsv, writeCsv } from "./lib/util";
 import { BigNumber } from "bignumber.js";
 import { getTimestampForBlock, getTransactionsForAddress } from "./lib/celo";
-import { AddressTotal, AddressTotalDisplay } from "./types";
+import { Totals, TotalAsString } from "./types";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -9,23 +9,6 @@ dotenv.config();
 BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
 const ZERO = new BigNumber(0);
 const ONE = new BigNumber(1);
-
-function emptyTotals(): AddressTotal {
-  return {
-    totalReceived: ZERO,
-    receivedCount: ZERO,
-    averageReceived: ZERO,
-    totalSent: ZERO,
-    sentCount: ZERO,
-    averageSent: ZERO,
-    totalFees: ZERO,
-    feesCount: ZERO,
-    averageFees: ZERO,
-    averageTransferTime: ZERO,
-    txTimeTotal: ZERO,
-    averageTxTime: ZERO,
-  };
-}
 
 async function start(
   inputFile: string,
@@ -68,7 +51,7 @@ async function start(
       console.log(`Started data retrieval for ${element.address}`);
 
       const data = await getTransactionsForAddress(element.address);
-      const totals: AddressTotal = emptyTotals();
+      const totals: Totals = new Totals();
 
       for (let j = 0; j < data?.tokenTransactions?.edges.length; j++) {
         // Process one transaction at a time
@@ -133,33 +116,9 @@ async function start(
         }
       }
 
-      // Calculate averages
-      totals.averageSent = bnAverage(totals.totalSent, totals.sentCount);
-      totals.averageReceived = bnAverage(
-        totals.totalReceived,
-        totals.receivedCount
-      );
-      totals.averageFees = bnAverage(totals.totalFees, totals.feesCount);
-      totals.averageTxTime = bnAverage(
-        totals.txTimeTotal,
-        totals.sentCount.plus(totals.receivedCount)
-      );
-
-      const stringTotals: AddressTotalDisplay = {
-        totalReceived: totals.totalReceived.toString(),
-        receivedCount: totals.receivedCount.toString(),
-        averageReceived: totals.averageReceived.toString(),
-        totalSent: totals.totalSent.toString(),
-        sentCount: totals.sentCount.toString(),
-        averageSent: totals.averageSent.toString(),
-        totalFees: totals.totalFees.toString(),
-        feesCount: totals.feesCount.toString(),
-        averageFees: totals.averageFees.toString(),
-        averageTransferTime: totals.averageTransferTime.toString(),
-        txTimeTotal: totals.txTimeTotal.toString(),
-        averageTxTime: totals.averageTxTime.toString(),
-      };
-      results.push({ address: addresses[i].address, ...stringTotals });
+      totals.calculateAverages();
+      const totalsAsString: TotalAsString = totals.toString();
+      results.push({ address: addresses[i].address, ...totalsAsString });
     }
   } catch (err) {
     console.error("Error processing data:" + err);

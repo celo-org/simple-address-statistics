@@ -1,5 +1,5 @@
 import { isValidAddress, toCheckSumAddress } from "./celo";
-import { AddressTotalDisplay } from "../types";
+import { TotalAsString } from "../types";
 import neatCsv from "neat-csv";
 import * as fastcsv from "fast-csv";
 import fs from "fs";
@@ -35,7 +35,7 @@ export async function readCsv(filename: string): Promise<any> {
 
 export function writeCsv(
   outputFile: string,
-  results: AddressTotalDisplay[]
+  results: TotalAsString[]
 ): void {
   if (outputFile != undefined) {
     console.log("");
