@@ -3,6 +3,8 @@ import { ADDRESS_QUERY, BLOCK_TIMESTAMP_QUERY } from "./gql";
 import { QueryOptions, ApolloClient, InMemoryCache } from "@apollo/client/core";
 import "cross-fetch/polyfill";
 
+const cache = new InMemoryCache();
+
 export function isValidAddress(address: string): boolean {
   return AddressUtils.isValidAddress(address);
 }
@@ -13,7 +15,6 @@ export function toCheckSumAddress(address: string): string {
 
 export async function getTransactionsForAddress(address: string): Promise<any> {
   try {
-    const cache = new InMemoryCache();
     const client = new ApolloClient({
       uri: process.env.BLOCKCHAIN_API_ENDPOINT,
       cache: cache,
@@ -34,7 +35,7 @@ export async function getTransactionsForAddress(address: string): Promise<any> {
     };
     const response = await client.query(options);
     const data = response.data;
-    console.log(`Completed data retreival for ${address}`);
+    console.log(`Completed transaction data retreival for ${address}`);
     return data;
   } catch (err) {
     console.error(
@@ -48,7 +49,6 @@ export async function getTimestampForBlock(
   blockNumber: number
 ): Promise<number> {
   try {
-    const cache = new InMemoryCache();
     const client = new ApolloClient({
       uri: process.env.BLOCKSCOUT_ENDPOINT,
       cache: cache,

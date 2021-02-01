@@ -1,7 +1,5 @@
 import BigNumber from "bignumber.js";
-import { bnAverage } from "./lib/util";
-
-const ZERO = new BigNumber(0);
+import { bnAverage, ZERO } from "./lib/util";
 export interface TotalAsString {
   totalReceived: string;
   receivedCount: string;
@@ -45,6 +43,16 @@ export class Totals {
       txTimeTotal: this.txTimeTotal.toString(),
       averageTxTime: this.averageTxTime.toString(),
     };
+  }
+
+  plus(anotherTotal: Totals | any): void {
+    this.totalReceived = this.totalReceived.plus(anotherTotal.totalReceived);
+    this.receivedCount = this.receivedCount.plus(anotherTotal.receivedCount);
+    this.totalSent = this.totalSent.plus(anotherTotal.totalSent);
+    this.sentCount = this.sentCount.plus(anotherTotal.sentCount);
+    this.totalFees = this.totalFees.plus(anotherTotal.totalFees);
+    this.feesCount = this.feesCount.plus(anotherTotal.feesCount);
+    this.txTimeTotal = this.txTimeTotal.plus(anotherTotal.txTimeTotal);
   }
 
   calculateAverages(): void {

@@ -31,8 +31,8 @@ export async function readCsv(filename: string): Promise<any> {
       throw `${addresses[i].address} is not a valid Celo address`;
     else addresses[i].address = toCheckSumAddress(addresses[i].address);
   }
-
-  console.log(`Addresses ${JSON.stringify(addresses)}`);
+  console.log();
+  console.log(`Retrieved ${addresses.length} address from ${filename}`);
   return addresses;
 }
 
