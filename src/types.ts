@@ -10,7 +10,6 @@ export interface TotalAsString {
   totalFees: string;
   feesCount: string;
   averageFees: string;
-  averageTransferTime: string;
   txTimeTotal: string;
   averageTxTime: string;
 }
@@ -24,7 +23,6 @@ export class Totals {
   totalFees: BigNumber = ZERO;
   feesCount: BigNumber = ZERO;
   averageFees: BigNumber = ZERO;
-  averageTransferTime: BigNumber = ZERO;
   txTimeTotal: BigNumber = ZERO;
   averageTxTime: BigNumber = ZERO;
 
@@ -39,7 +37,6 @@ export class Totals {
       totalFees: this.totalFees.toString(),
       feesCount: this.feesCount.toString(),
       averageFees: this.averageFees.toString(),
-      averageTransferTime: this.averageTransferTime.toString(),
       txTimeTotal: this.txTimeTotal.toString(),
       averageTxTime: this.averageTxTime.toString(),
     };

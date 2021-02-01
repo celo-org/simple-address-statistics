@@ -16,8 +16,7 @@ export function toEpochTimestamp(dateString: string, delimiter = "-"): number {
   const epochDate = new Date(
     parseInt(splitDate[0], 10),
     parseInt(splitDate[1], 10) - 1,
-    parseInt(splitDate[2]),
-    10
+    parseInt(splitDate[2], 10)
   ).getTime();
   return epochDate;
 }
@@ -36,17 +35,30 @@ export async function readCsv(filename: string): Promise<any> {
   return addresses;
 }
 
-export function writeCsv(outputFile: string, results: TotalAsString[]): void {
+export function writeCsv(
+  outputFile: string,
+  results: TotalAsString[]
+): boolean {
   if (outputFile != undefined) {
     console.log("");
     const ws = fs.createWriteStream(outputFile);
     fastcsv.write(results, { headers: true }).pipe(ws);
     console.log(`Output written to ${outputFile}. Ending.`);
+    return true;
   } else {
     console.log("No output file specified. Ending.");
+    return false;
   }
 }
 
 export function bnAverage(total: BigNumber, count: BigNumber): BigNumber {
   return !count.isEqualTo(ZERO) ? total.dividedBy(count) : ZERO;
+}
+
+export function withinTimeRange(
+  timestamp: any,
+  epochFromDate: number,
+  epochToDate: number
+): boolean {
+  return timestamp >= epochFromDate && timestamp < epochToDate;
 }

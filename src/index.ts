@@ -1,4 +1,11 @@
-import { toEpochTimestamp, readCsv, writeCsv, ONE, ZERO } from "./lib/util";
+import {
+  toEpochTimestamp,
+  readCsv,
+  writeCsv,
+  withinTimeRange,
+  ONE,
+  ZERO,
+} from "./lib/util";
 import { BigNumber } from "bignumber.js";
 import { getTimestampForBlock, getTransactionsForAddress } from "./lib/celo";
 import { Totals, TotalAsString } from "./types";
@@ -7,14 +14,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
-
-function withinTimeRange(
-  timestamp: any,
-  epochFromDate: number,
-  epochToDate: number
-): boolean {
-  return timestamp >= epochFromDate && timestamp < epochToDate;
-}
 
 async function processTransaction(
   transaction: any,
