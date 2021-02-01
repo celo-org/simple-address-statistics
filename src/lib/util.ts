@@ -5,6 +5,9 @@ import * as fastcsv from "fast-csv";
 import fs from "fs";
 import BigNumber from "bignumber.js";
 
+export const ONE = new BigNumber(1);
+export const ZERO = new BigNumber(0);
+
 export function toEpochTimestamp(dateString: string, delimiter = "-"): number {
   // Date provided as YYYY-MM-DD
   const splitDate = dateString.split(delimiter);
@@ -33,10 +36,7 @@ export async function readCsv(filename: string): Promise<any> {
   return addresses;
 }
 
-export function writeCsv(
-  outputFile: string,
-  results: TotalAsString[]
-): void {
+export function writeCsv(outputFile: string, results: TotalAsString[]): void {
   if (outputFile != undefined) {
     console.log("");
     const ws = fs.createWriteStream(outputFile);
@@ -48,6 +48,5 @@ export function writeCsv(
 }
 
 export function bnAverage(total: BigNumber, count: BigNumber): BigNumber {
-  const ZERO = new BigNumber(0);
   return !count.isEqualTo(ZERO) ? total.dividedBy(count) : ZERO;
 }

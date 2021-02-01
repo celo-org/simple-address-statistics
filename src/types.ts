@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import {bnAverage} from "./lib/util";
+import { bnAverage } from "./lib/util";
 
 const ZERO = new BigNumber(0);
 export interface TotalAsString {
@@ -17,7 +17,6 @@ export interface TotalAsString {
   averageTxTime: string;
 }
 export class Totals {
-
   totalReceived: BigNumber = ZERO;
   receivedCount: BigNumber = ZERO;
   averageReceived: BigNumber = ZERO;
@@ -31,7 +30,7 @@ export class Totals {
   txTimeTotal: BigNumber = ZERO;
   averageTxTime: BigNumber = ZERO;
 
-  toString() : TotalAsString {
+  toString(): TotalAsString {
     return {
       totalReceived: this.totalReceived.toString(),
       receivedCount: this.receivedCount.toString(),
@@ -44,20 +43,17 @@ export class Totals {
       averageFees: this.averageFees.toString(),
       averageTransferTime: this.averageTransferTime.toString(),
       txTimeTotal: this.txTimeTotal.toString(),
-      averageTxTime: this.averageTxTime.toString(), 
-    }
+      averageTxTime: this.averageTxTime.toString(),
+    };
   }
 
-  calculateAverages() : void {
-      this.averageSent = bnAverage(this.totalSent, this.sentCount);
-      this.averageReceived = bnAverage(
-        this.totalReceived,
-        this.receivedCount
-      );
-      this.averageFees = bnAverage(this.totalFees, this.feesCount);
-      this.averageTxTime = bnAverage(
-        this.txTimeTotal,
-        this.sentCount.plus(this.receivedCount)
-      );
+  calculateAverages(): void {
+    this.averageSent = bnAverage(this.totalSent, this.sentCount);
+    this.averageReceived = bnAverage(this.totalReceived, this.receivedCount);
+    this.averageFees = bnAverage(this.totalFees, this.feesCount);
+    this.averageTxTime = bnAverage(
+      this.txTimeTotal,
+      this.sentCount.plus(this.receivedCount)
+    );
   }
 }

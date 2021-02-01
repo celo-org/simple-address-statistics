@@ -1,4 +1,4 @@
-import { toEpochTimestamp, readCsv, writeCsv } from "./lib/util";
+import { toEpochTimestamp, readCsv, writeCsv, ONE, ZERO } from "./lib/util";
 import { BigNumber } from "bignumber.js";
 import { getTimestampForBlock, getTransactionsForAddress } from "./lib/celo";
 import { Totals, TotalAsString } from "./types";
@@ -7,8 +7,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
-const ZERO = new BigNumber(0);
-const ONE = new BigNumber(1);
 
 async function start(
   inputFile: string,
@@ -115,7 +113,6 @@ async function start(
           totals.receivedCount = totals.receivedCount.plus(ONE);
         }
       }
-
       totals.calculateAverages();
       const totalsAsString: TotalAsString = totals.toString();
       results.push({ address: addresses[i].address, ...totalsAsString });
