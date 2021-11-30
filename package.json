@@ -37,7 +37,7 @@
   },
   "snyk": true,
   "dependencies": {
-    "@apollo/client": "^3.3.7",
+    "@apollo/client": "^3.5.0",
     "@celo/utils": "^1.0.1",
     "bignumber.js": "^9.0.1",
     "dotenv": "^8.2.0",
