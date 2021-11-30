@@ -42,7 +42,7 @@
     "bignumber.js": "^9.0.1",
     "dotenv": "^8.2.0",
     "fast-csv": "^4.3.6",
-    "graphql": "^15.5.0",
+    "graphql": "^15.7.2",
     "neat-csv": "^6.0.1"
   }
 }
