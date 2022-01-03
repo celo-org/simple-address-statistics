@@ -39,7 +39,7 @@
   "dependencies": {
     "@apollo/client": "^3.3.7",
     "@celo/utils": "^1.0.1",
-    "bignumber.js": "^9.0.1",
+    "bignumber.js": "^9.0.2",
     "dotenv": "^8.2.0",
     "fast-csv": "^4.3.6",
     "graphql": "^15.5.0",
